@@ -1,0 +1,670 @@
+<title>Cool Pizza Zamówienia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: sklep jednokolumnowy (mobile-first) z kartą pizzy jak „paragon z pieca”, koszyk jako panel boczny / dolna szuflada.
+   Kolory marki Cool Pizza (czerń + limonka) zostawione celowo — to istniejąca identyfikacja, motyw jeden, ciemny. */
+:root{
+  color-scheme: dark;
+  --bg:#0b0d0a;          /* tło – czerń z lekką zielenią */
+  --surface:#151913;     /* karty */
+  --surface-2:#1e241b;   /* pola, chipy */
+  --line:#2c3428;        /* linie */
+  --fg:#eef3e8;          /* tekst */
+  --muted:#9aa591;       /* tekst drugorzędny */
+  --lime:#9be22d;        /* akcent marki */
+  --lime-ink:#0b0d0a;    /* tekst na limonce */
+  --hot:#ff6a3d;         /* ostre */
+  --veg:#5fd08a;         /* bez mięsa */
+  --display:"Bowlby One", "Arial Black", Impact, sans-serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r:14px;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--body);margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+
+/* ---------- Header ---------- */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in oklab,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.logo{font-family:var(--display);font-size:22px;letter-spacing:.5px;line-height:1;display:flex;align-items:baseline;gap:6px}
+.logo b{color:var(--lime);font-weight:400}
+.loc{font-size:12.5px;color:var(--muted);line-height:1.3;min-width:0}
+.loc strong{color:var(--fg);font-weight:600;display:block}
+.cart-btn{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--lime);color:var(--lime-ink);border:0;border-radius:999px;padding:9px 14px;font-weight:700;white-space:nowrap}
+.cart-btn .n{background:var(--lime-ink);color:var(--lime);border-radius:999px;min-width:22px;height:22px;display:grid;place-items:center;font-size:12px;padding:0 6px}
+
+/* ---------- Layout ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:18px 120px;display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
+@media (min-width:980px){.wrap{grid-template-columns:minmax(0,1fr) 360px;padding-block-end:40px}}
+
+.hero{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;justify-content:space-between}
+.hero h1{font-family:var(--display);font-weight:400;font-size:clamp(28px,6vw,44px);line-height:1;margin:0;text-wrap:balance}
+.hero h1 span{color:var(--lime)}
+.status{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.pill{border:1px solid var(--line);border-radius:999px;padding:4px 10px;background:var(--surface)}
+.pill.open{border-color:color-mix(in oklab,var(--lime) 45%,var(--line));color:var(--lime)}
+.pill.closed{border-color:color-mix(in oklab,var(--hot) 45%,var(--line));color:var(--hot)}
+
+/* ---------- Tabs & filters ---------- */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.tab{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:600;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--lime);border-color:var(--lime);color:var(--lime-ink)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.search{flex:1 1 220px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+.chk{display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.chk input{accent-color:var(--lime)}
+
+/* ---------- Menu ---------- */
+.menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:14px}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.item-h{display:flex;gap:10px;align-items:baseline}
+.nr{font-family:var(--display);color:var(--lime);font-size:15px;font-variant-numeric:tabular-nums;min-width:2ch}
+.item h3{margin:0;font-size:16px;font-weight:700;letter-spacing:.2px;text-transform:uppercase}
+.tags{display:flex;gap:6px;margin-left:auto;flex:none}
+.tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:2px 7px;border-radius:6px}
+.tag.v{color:var(--veg);background:color-mix(in oklab,var(--veg) 14%,transparent)}
+.tag.h{color:var(--hot);background:color-mix(in oklab,var(--hot) 14%,transparent)}
+.ingr{margin:0;color:var(--muted);font-size:13.5px}
+.sizes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:auto}
+.size{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:7px 4px;display:flex;flex-direction:column;align-items:center;gap:1px;transition:border-color .15s,background .15s}
+.size:hover{border-color:var(--lime);background:color-mix(in oklab,var(--lime) 10%,var(--surface-2))}
+.size .cm{font-size:12px;color:var(--muted)}
+.size .pr{font-weight:700;font-variant-numeric:tabular-nums;font-size:14px}
+.single{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto}
+.price{font-weight:700;font-size:17px;font-variant-numeric:tabular-nums}
+.add{background:var(--lime);color:var(--lime-ink);border:0;border-radius:10px;padding:8px 14px;font-weight:700}
+.empty{color:var(--muted);padding:30px 0;text-align:center}
+
+/* ---------- Cart ---------- */
+.cart{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;max-height:calc(100vh - 100px)}
+@media (min-width:980px){.cart{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);align-self:start}}
+@media (max-width:979px){
+  .cart{position:fixed;inset:auto 0 0 0;max-height:88vh;border-radius:18px 18px 0 0;z-index:40;transform:translateY(105%);transition:transform .25s ease;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .cart.open{transform:none}
+}
+.cart-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)}
+.cart-h h2{font-family:var(--display);font-weight:400;font-size:20px;margin:0}
+.x{background:none;border:0;color:var(--muted);font-size:22px;line-height:1;padding:4px}
+@media (min-width:980px){.cart-h .x{display:none}}
+.cart-body{overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding-bottom:10px;border-bottom:1px dashed var(--line)}
+.line .t{font-weight:600}
+.line .d{grid-column:1/-1;color:var(--muted);font-size:12.5px}
+.line .lp{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.qty{display:flex;align-items:center;gap:6px}
+.qty button{width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2)}
+.qty span{min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
+.cart-f{border-top:1px solid var(--line);padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.sum{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.sum.total{font-size:18px;font-weight:700}
+.code{display:flex;gap:6px}
+.code input{flex:1;min-width:0;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.btn{border-radius:12px;padding:12px 16px;font-weight:700;border:1px solid var(--line);background:var(--surface-2)}
+.btn.primary{background:var(--lime);color:var(--lime-ink);border-color:var(--lime);width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.note{font-size:12.5px;color:var(--muted);margin:0}
+.scrim{position:fixed;inset:0;background:rgb(0 0 0 / .55);z-index:35}
+
+/* ---------- Modal ---------- */
+dialog{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:18px;padding:0;width:min(560px,calc(100vw - 24px));max-height:calc(100vh - 32px)}
+dialog::backdrop{background:rgb(0 0 0 / .6)}
+.m{display:flex;flex-direction:column;max-height:calc(100vh - 34px)}
+.m-h{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+.m-h h2{margin:0;font-size:18px;text-transform:uppercase}
+.m-h p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.m-b{overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:16px}
+.grp h4{margin:0 0 8px;font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:var(--lime)}
+.grp .hint{font-weight:500;color:var(--muted);letter-spacing:0;text-transform:none}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));gap:6px}
+.opt{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:7px 9px;font-size:13.5px}
+.opt input{accent-color:var(--lime);flex:none}
+.opt .op{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums;font-size:12.5px;white-space:nowrap}
+.opt:has(input:checked){border-color:var(--lime)}
+.m-f{border-top:1px solid var(--line);padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.m-f .price{margin-right:auto}
+
+/* ---------- Checkout ---------- */
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.form .full{grid-column:1/-1}
+@media (max-width:520px){.form{grid-template-columns:minmax(0,1fr)}}
+.f label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
+.f input,.f select,.f textarea{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+.f textarea{min-height:64px;resize:vertical}
+.seg{display:flex;gap:6px}
+.seg label{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px;font-weight:600;font-size:14px;margin:0;color:var(--fg)}
+.seg input{accent-color:var(--lime)}
+.seg label:has(input:checked){border-color:var(--lime);color:var(--lime)}
+.err{color:var(--hot);font-size:13px;margin:0}
+.ticket{white-space:pre-wrap;background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:12px;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-x:auto}
+.phones{display:flex;flex-wrap:wrap;gap:8px}
+.phones span{font-weight:700;font-variant-numeric:tabular-nums;user-select:all;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--lime);color:var(--lime-ink);padding:10px 16px;border-radius:999px;font-weight:700;z-index:60}
+footer{grid-column:1/-1;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);padding-top:14px}
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <div class="logo">COOL<b>PIZZA</b></div>
+    <div class="loc"><strong id="locName">Ostrów Wielkopolski</strong><span id="locAddr">ul. Śmigielskiego 20</span></div>
+    <button class="cart-btn" id="openCart" type="button" aria-label="Pokaż koszyk">Koszyk <span class="n" id="cartCount">0</span></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section style="display:flex;flex-direction:column;gap:16px;min-width:0">
+    <div class="hero">
+      <h1>Zamów <span>na ciepło</span></h1>
+      <div class="status">
+        <span class="pill" id="openPill">…</span>
+        <span class="pill">Pon–Nd 11:00–23:00</span>
+        <span class="pill">30 · 40 · 50 · 60 cm</span>
+      </div>
+    </div>
+
+    <nav class="tabs" role="tablist" id="tabs"></nav>
+
+    <div class="filters">
+      <input class="search" id="q" type="search" placeholder="Szukaj pizzy lub składnika, np. boczek" aria-label="Szukaj w menu">
+      <label class="chk"><input type="checkbox" id="fVeg"> bez mięsa</label>
+      <label class="chk"><input type="checkbox" id="fHot"> ostre</label>
+    </div>
+
+    <div class="menu" id="menu"></div>
+  </section>
+
+  <aside class="cart" id="cart" aria-label="Koszyk">
+    <div class="cart-h"><h2>Koszyk</h2><button class="x" type="button" id="closeCart" aria-label="Zamknij koszyk">×</button></div>
+    <div class="cart-body" id="cartBody"></div>
+    <div class="cart-f">
+      <div class="code">
+        <input id="code" type="text" placeholder="Kod rabatowy" aria-label="Kod rabatowy">
+        <button class="btn" type="button" id="applyCode">Zastosuj</button>
+      </div>
+      <p class="note" id="codeMsg" hidden></p>
+      <div class="sum"><span>Produkty</span><span id="sSub">0,00 zł</span></div>
+      <div class="sum" id="rowDisc" hidden><span>Rabat</span><span id="sDisc">0,00 zł</span></div>
+      <div class="sum" id="rowDel" hidden><span>Dostawa</span><span id="sDel">0,00 zł</span></div>
+      <div class="sum total"><span>Razem</span><span id="sTot">0,00 zł</span></div>
+      <button class="btn primary" type="button" id="checkoutBtn" disabled>Zamawiam</button>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <footer>Cool Pizza · ul. Śmigielskiego 20, 63-400 Ostrów Wielkopolski · tel. 62 307 07 07 · kontakt@coolpizza.pl</footer>
+</main>
+
+<!-- Modal: dodatki -->
+<dialog id="dlgItem"><form method="dialog" class="m" id="itemForm">
+  <div class="m-h"><div style="min-width:0"><h2 id="miName"></h2><p id="miDesc"></p></div><button class="x" value="cancel" aria-label="Zamknij" style="margin-left:auto">×</button></div>
+  <div class="m-b" id="miBody"></div>
+  <div class="m-f">
+    <span class="price" id="miPrice"></span>
+    <div class="qty"><button type="button" id="miMinus" aria-label="Mniej">−</button><span id="miQty">1</span><button type="button" id="miPlus" aria-label="Więcej">+</button></div>
+    <button class="add" type="button" id="miAdd">Dodaj do koszyka</button>
+  </div>
+</form></dialog>
+
+<!-- Modal: zamówienie -->
+<dialog id="dlgCheckout"><form class="m" id="coForm" novalidate>
+  <div class="m-h"><div><h2>Dane zamówienia</h2><p>Sprawdź dane i potwierdź.</p></div><button class="x" type="button" id="coClose" aria-label="Zamknij" style="margin-left:auto">×</button></div>
+  <div class="m-b" id="coBody">
+    <div class="form">
+      <div class="f full"><label>Sposób odbioru</label>
+        <div class="seg">
+          <label><input type="radio" name="mode" id="mDel" value="dostawa" checked> Dostawa</label>
+          <label><input type="radio" name="mode" id="mPick" value="odbiór"> Odbiór osobisty</label>
+        </div>
+      </div>
+      <div class="f"><label for="cName">Imię</label><input id="cName" autocomplete="given-name" required></div>
+      <div class="f"><label for="cPhone">Telefon</label><input id="cPhone" type="tel" autocomplete="tel" inputmode="tel" placeholder="np. 600 100 200" required></div>
+      <div class="f full addr"><label for="cStreet">Ulica i numer</label><input id="cStreet" autocomplete="address-line1"></div>
+      <div class="f addr"><label for="cFlat">Mieszkanie / piętro</label><input id="cFlat" autocomplete="address-line2"></div>
+      <div class="f addr"><label for="cCity">Miejscowość</label><input id="cCity" value="Ostrów Wielkopolski" autocomplete="address-level2"></div>
+      <div class="f"><label for="cWhen">Kiedy</label><select id="cWhen"></select></div>
+      <div class="f"><label for="cPay">Płatność</label>
+        <select id="cPay"><option>Gotówka przy odbiorze</option><option>Karta przy odbiorze</option><option>BLIK przy odbiorze</option></select>
+      </div>
+      <div class="f full"><label for="cNote">Uwagi do zamówienia</label><textarea id="cNote" placeholder="np. dzwonek nie działa, proszę dzwonić"></textarea></div>
+      <label class="chk full" style="background:none;border:0;padding:0"><input type="checkbox" id="cRodo" required> Akceptuję regulamin i politykę prywatności</label>
+    </div>
+    <p class="err" id="coErr" hidden></p>
+  </div>
+  <div class="m-f"><span class="price" id="coTotal"></span><button class="add" type="submit">Potwierdzam zamówienie</button></div>
+</form></dialog>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* =========================================================
+   KONFIGURACJA — wszystko, co zmieniasz w pizzerii, jest tutaj
+   ========================================================= */
+const CONFIG = {
+  restauracja: {
+    nazwa: "COOL PIZZA Ostrów Wielkopolski",
+    adres: "ul. Śmigielskiego 20, 63-400 Ostrów Wielkopolski",
+    telefon: "62 307 07 07",
+    email: "kontakt@coolpizza.pl",
+    otwarcie: { od: 11, do: 23 },       // godziny, codziennie
+  },
+  dostawa: {
+    koszt: 0,           // zł — wpisz swój koszt dostawy
+    darmowaOd: 0,       // zł — darmowa dostawa od kwoty (0 = wyłączone)
+    minimum: 0,         // zł — minimalna wartość zamówienia z dostawą
+  },
+  // Supabase: Project Settings → API. Wklej Project URL i klucz "anon public" (NIE service_role!).
+  // Puste pola = tryb bez bazy (klient dostaje podsumowanie do wysłania SMS-em).
+  supabase: {
+    url: "https://sliqjrarbxwfpjhdrvbs.supabase.co",
+    anonKey: "sb_publishable_H3Flu18RQ_zLY3Bxj-kamA_LBaYECWz",   // klucz publishable (publiczny)
+  },
+  // Kody rabatowe: KOD: { typ: "proc" | "kwota", wartosc }
+  kody: {
+    // "COOL10": { typ: "proc", wartosc: 10 },
+  },
+};
+
+/* Ceny wg rozmiaru: [30, 40, 50, 60 cm] — 5 progów cenowych z coolpizza.pl */
+const SIZES = [30, 40, 50, 60];
+const TIER = {
+  A: [30.50, 48.50, 64.00, 75.50],
+  B: [38.50, 59.00, 75.00, 92.00],
+  C: [40.00, 60.50, 77.00, 95.00],
+  D: [42.00, 63.50, 79.00, 98.00],
+  E: [43.50, 67.50, 85.00, 105.50],
+};
+
+/* [nr, nazwa, składniki, próg, tagi]  tagi: v = bez mięsa, h = ostre */
+const PIZZE = [
+  [1,"Margherita","sos pomidorowy, ser, oregano","A","v"],
+  [2,"Cool-Pizza","sos pomidorowy, ser, mięso mielone, świeży ogórek, pieczarki, cebula, oregano","D",""],
+  [3,"Clasic","sos pomidorowy, ser, salami, pieczarki, szynka, oregano","B",""],
+  [4,"Vesuwio","sos pomidorowy, ser, salami, pieczarki, papryka konserwowa, oregano","B",""],
+  [5,"Hawana","sos pomidorowy, ser, szynka, oregano, ananas","B",""],
+  [6,"Giowani","sos pomidorowy, ser, boczek, cebula, oliwki zielone, ogórek konserwowy, oregano","B",""],
+  [7,"Angela","sos pomidorowy, ser, polędwica, groszek, jajko, cebula, oregano","B",""],
+  [8,"Desperado","sos pomidorowy, ser, pieczarki, papryka jalapeno, salami, czosnek, oregano","B","h"],
+  [9,"Vegetariana","sos pomidorowy, ser, pieczarki, cebula, pomidor, papryka konserwowa, oregano","B","v"],
+  [10,"Specjal","sos pomidorowy, ser, pieczarki, kukurydza, szynka, ananas, oregano","B",""],
+  [11,"Kolumb","sos pomidorowy, ser, szynka, papryka konserwowa, pieczarki, oregano","B",""],
+  [12,"Romana","sos pomidorowy, ser, kurczak panierowany, cebula, groszek, oregano","B",""],
+  [13,"Cziken","sos pomidorowy, ser, kurczak panierowany, papryka jalapeno, ananas, oregano","B","h"],
+  [14,"Grecka","sos pomidorowy, ser, salami, szpinak, ser feta, oregano","B",""],
+  [15,"Carbonara","sos śmietanowy, ser, cebula, boczek, bazylia, oregano","B",""],
+  [16,"Marco Polo","sos pomidorowy, ser, pieczarki, czosnek, salami, papryka konserwowa, szpinak, oregano","C",""],
+  [17,"Napoli","sos pomidorowy, ser, tuńczyk, cebula, ogórek konserwowy, oliwki zielone, jajko, oregano","C",""],
+  [18,"Szparagowa","sos pomidorowy, ser, szparagi, ser grana padano, szynka dojrzewająca, oregano","C",""],
+  [19,"Sorento","sos pomidorowy, ser, polędwica, kapary, pomidor, cebula, oregano","C",""],
+  [20,"Pyra Pizza","sos pomidorowy, ser, boczek, cebula, ziemniaki, oregano","C",""],
+  [21,"Marsjańska","sos pomidorowy, ser, anchois, ananas, oregano","C",""],
+  [22,"Wiejska","sos pomidorowy, ser, salami, boczek, ogórek konserwowy, cebula, jajko, oregano","D",""],
+  [23,"Chłopska","sos pomidorowy, ser, salami, pieczarki, boczek, papryka konserwowa, oregano","D",""],
+  [24,"Góralska","sos pomidorowy, ser, boczek, cebula, żurawina, ser wędzony, oregano","D",""],
+  [25,"Szefa","sos pomidorowy, ser, szynka, cebula, pieczarki, ogórek konserwowy, oregano","D",""],
+  [26,"Brokułowa","sos pomidorowy, ser, brokuły, cebula, papryka świeża, pomidor, mięso mielone, oregano","D",""],
+  [27,"Sushi Pizza","sos śmietanowy, ser, łosoś wędzony, świeży ogórek, ser philadelphia, liście nori, oregano","D",""],
+  [28,"Kebab Pizza","sos pomidorowy, ser, kebab drobiowy, ogórek konserwowy, pieczarki, cebula, oregano","D",""],
+  [29,"Nowa Kebab Pizza","sos pomidorowy, ser, kebab drobiowy, cebula, ser favita, oregano","D",""],
+  [30,"Fantazja","sos pomidorowy, ser, pomidor, cebula, świeży ogórek, pieczarki, kolby kukurydzy, pieprz, oregano","D","v"],
+  [31,"Amigos","sos pomidorowy, ser, fasola czerwona, mięso mielone, cebula, kukurydza, płatki chili, oregano","D","h"],
+  [32,"Frutti di Mare","sos pomidorowy, ser, krewetki, rukola, ser grana padano, płatki chili, oregano","D","h"],
+  [33,"Parmeńska","sos pomidorowy, ser, ser grana padano, pomidory suszone, szynka dojrzewająca, rukola, oregano","D",""],
+  [34,"Z gruszką","sos pomidorowy, ser, gruszka, ser lazur, rukola, miód, orzech włoski, oregano","D","v"],
+  [35,"Familijna","sos pomidorowy, ser, polędwica, kabanosy, frankfurterki, salami, papryka konserwowa, oregano","E",""],
+  [36,"Serowa","sos pomidorowy, ser feta, ser lazur, ser camembert, pomidor, oregano","E","v"],
+  [37,"Vege-Margherita","sos pomidorowy, ser wegański, oregano","A","v"],
+  [38,"Vege-Rucola","sos pomidorowy, ser wegański, rukola, cebula, papryka świeża, pomidor, oliwki zielone, oregano","D","v"],
+  [39,"Twoja Pizza","sos pomidorowy, ser, oregano — skomponuj z dodatków","A",""],
+];
+
+/* Darmowy sos do każdej pizzy (max 1) */
+const FREE_SAUCES = ["ketchup","sos czosnkowy","sos ziołowy","sos bbq","sos jalapeno"];
+
+/* Płatne dodatki — oczyszczone z duplikatów i pozycji „null” ze strony */
+const ADDONS = [
+  { grupa:"Mięsne", cena:4.50, lista:["mięso mielone","salami","szynka","boczek","polędwica","tuńczyk","krewetki","anchois","kabanosy","łosoś wędzony","kurczak panierowany","kebab drobiowy","frankfurterki"] },
+  { grupa:"Sery", cena:6.00, lista:["dodatkowy ser","ser feta","ser lazur","ser camembert","ser wędzony","ser philadelphia","ser favita"] },
+  { grupa:"Warzywa i owoce", cena:3.00, lista:["pieczarki","cebula","świeży ogórek","ogórek konserwowy","papryka konserwowa","papryka świeża","papryka jalapeno","pomidor","pomidory suszone","kukurydza","kolby kukurydzy","oliwki zielone","groszek","fasola czerwona","szpinak","brokuły","szparagi","kapary","rukola","ziemniaki","czosnek","jajko","ananas","gruszka","żurawina","orzech włoski","miód","liście nori"] },
+  { grupa:"Sosy", cena:3.50, lista:["ketchup","sos czosnkowy","sos ziołowy","sos bbq","sos jalapeno"] },
+  { grupa:"Bez dopłaty", cena:0, lista:["sos śmietanowy (zamiast pomidorowego)","oregano","bazylia","pieprz"] },
+];
+
+const OTHER = {
+  "Zestawy": [
+    ["Party Box","60 cm Kebab Pizza, 60 cm Clasic, 60 cm Chłopska + 9 sosów gratis",260.00],
+    ["Mini Party Box","50 cm Clasic, 50 cm Kebab Pizza, 50 cm Chłopska + 6 dowolnych sosów",210.00],
+    ["Family Box","40 cm Familijna, 40 cm Clasic, 40 cm Kebab Pizza + 3 sosy gratis",175.00],
+    ["Kinder Box","40 cm Margherita z szynką, z pieczarkami i z dodatkowym serem + 3 sosy gratis",145.00],
+  ],
+  "Promocje": [
+    ["2× Margherita 60 cm","Dwie duże Margherity",120.00],
+    ["Margherita 60 cm + Pepsi 0,85 l","1× Margherita 60 cm, 2× sos czosnkowy, Pepsi 0,85 l",75.00],
+  ],
+  "Napoje": [
+    ["Pepsi 0,85 l","",11.00],
+    ["Pepsi 0,5 l","",7.00],
+    ["Pepsi Zero Cukru 0,5 l","",7.00],
+    ["7UP 0,5 l","",7.00],
+    ["Mirinda 0,5 l","",7.00],
+    ["Lipton Brzoskwinia 0,5 l","",7.00],
+    ["Woda niegazowana 0,5 l","",7.00],
+  ],
+  "Sosy": FREE_SAUCES.map(s => [s[0].toUpperCase()+s.slice(1), "", 3.50]),
+};
+
+/* =========================================================
+   APLIKACJA
+   ========================================================= */
+const $ = s => document.querySelector(s);
+const zl = n => n.toFixed(2).replace(".", ",") + " zł";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const CATS = ["Pizza", ...Object.keys(OTHER)];
+let cat = "Pizza", cart = [], discount = null;
+
+try { const s = JSON.parse(localStorage.getItem("cp_cart") || "null"); if (Array.isArray(s)) cart = s; } catch {}
+const save = () => { try { localStorage.setItem("cp_cart", JSON.stringify(cart)); } catch {} };
+
+function isOpen(d = new Date()) {
+  const h = d.getHours() + d.getMinutes() / 60;
+  return h >= CONFIG.restauracja.otwarcie.od && h < CONFIG.restauracja.otwarcie.do;
+}
+function renderStatus() {
+  const p = $("#openPill"), o = isOpen();
+  p.textContent = o ? "Otwarte teraz" : "Zamknięte — zamów na później";
+  p.className = "pill " + (o ? "open" : "closed");
+}
+
+function renderTabs() {
+  $("#tabs").innerHTML = CATS.map(c =>
+    `<button class="tab" role="tab" type="button" aria-selected="${c === cat}" data-c="${c}">${c}</button>`).join("");
+  $(".filters").hidden = cat !== "Pizza";
+}
+$("#tabs").addEventListener("click", e => {
+  const b = e.target.closest(".tab"); if (!b) return;
+  cat = b.dataset.c; renderTabs(); renderMenu();
+});
+
+function renderMenu() {
+  const m = $("#menu");
+  if (cat !== "Pizza") {
+    m.innerHTML = OTHER[cat].map((p, i) => `
+      <article class="item">
+        <div class="item-h"><h3>${esc(p[0])}</h3></div>
+        ${p[1] ? `<p class="ingr">${esc(p[1])}</p>` : ""}
+        <div class="single"><span class="price">${zl(p[2])}</span>
+          <button class="add" type="button" data-other="${i}">Dodaj</button></div>
+      </article>`).join("");
+    return;
+  }
+  const q = $("#q").value.trim().toLowerCase(), veg = $("#fVeg").checked, hot = $("#fHot").checked;
+  const list = PIZZE.filter(p =>
+    (!q || (p[1] + " " + p[2]).toLowerCase().includes(q)) &&
+    (!veg || p[4].includes("v")) && (!hot || p[4].includes("h")));
+  m.innerHTML = list.length ? list.map(p => `
+    <article class="item">
+      <div class="item-h"><span class="nr">${p[0]}</span><h3>${esc(p[1])}</h3>
+        <span class="tags">${p[4].includes("v") ? '<span class="tag v">bez mięsa</span>' : ""}${p[4].includes("h") ? '<span class="tag h">ostra</span>' : ""}</span></div>
+      <p class="ingr">${esc(p[2])}</p>
+      <div class="sizes">${SIZES.map((s, i) => `
+        <button class="size" type="button" data-p="${p[0]}" data-s="${i}" aria-label="${esc(p[1])} ${s} cm, ${zl(TIER[p[3]][i])}">
+          <span class="cm">${s} cm</span><span class="pr">${TIER[p[3]][i].toFixed(2).replace(".", ",")}</span></button>`).join("")}
+      </div>
+    </article>`).join("") : `<p class="empty">Brak pizzy dla tych filtrów.</p>`;
+}
+["#q", "#fVeg", "#fHot"].forEach(s => $(s).addEventListener("input", renderMenu));
+
+$("#menu").addEventListener("click", e => {
+  const sz = e.target.closest(".size");
+  if (sz) return openItem(+sz.dataset.p, +sz.dataset.s);
+  const o = e.target.closest("[data-other]");
+  if (o) {
+    const p = OTHER[cat][+o.dataset.other];
+    addToCart({ name: p[0], desc: p[1], unit: p[2], qty: 1 });
+  }
+});
+
+/* ---------- Modal pizzy ---------- */
+let cur = null;
+function openItem(nr, si) {
+  const p = PIZZE.find(x => x[0] === nr);
+  cur = { p, si, qty: 1 };
+  $("#miName").textContent = `${p[1]} · ${SIZES[si]} cm`;
+  $("#miDesc").textContent = p[2];
+  $("#miBody").innerHTML = `
+    <div class="grp"><h4>Darmowy sos <span class="hint">· max 1</span></h4>
+      <div class="opts">${FREE_SAUCES.map((s, i) => `<label class="opt"><input type="checkbox" name="free" value="${esc(s)}" id="fs${i}">${esc(s)}</label>`).join("")}</div></div>
+    ${ADDONS.map((g, gi) => `
+    <div class="grp"><h4>${g.grupa} <span class="hint">· ${g.cena ? "+" + zl(g.cena) : "gratis"}</span></h4>
+      <div class="opts">${g.lista.map((a, ai) => `<label class="opt"><input type="checkbox" name="add" value="${gi}:${ai}" id="ad${gi}_${ai}">${esc(a)}</label>`).join("")}</div></div>`).join("")}`;
+  $("#miQty").textContent = 1;
+  updItem();
+  $("#dlgItem").showModal();
+}
+function itemUnit() {
+  let u = TIER[cur.p[3]][cur.si];
+  document.querySelectorAll('#miBody input[name=add]:checked').forEach(c => { u += ADDONS[+c.value.split(":")[0]].cena; });
+  return u;
+}
+function updItem() { $("#miPrice").textContent = zl(itemUnit() * cur.qty); }
+$("#miBody").addEventListener("change", e => {
+  if (e.target.name === "free" && e.target.checked)
+    document.querySelectorAll('#miBody input[name=free]').forEach(c => { if (c !== e.target) c.checked = false; });
+  updItem();
+});
+$("#miMinus").onclick = () => { cur.qty = Math.max(1, cur.qty - 1); $("#miQty").textContent = cur.qty; updItem(); };
+$("#miPlus").onclick = () => { cur.qty = Math.min(20, cur.qty + 1); $("#miQty").textContent = cur.qty; updItem(); };
+$("#miAdd").onclick = () => {
+  const free = [...document.querySelectorAll('#miBody input[name=free]:checked')].map(c => c.value);
+  const adds = [...document.querySelectorAll('#miBody input[name=add]:checked')].map(c => { const [g, a] = c.value.split(":"); return ADDONS[g].lista[a]; });
+  const desc = [free.length ? "sos gratis: " + free[0] : "", adds.length ? "+ " + adds.join(", ") : ""].filter(Boolean).join(" · ");
+  addToCart({ name: `${cur.p[1]} ${SIZES[cur.si]} cm`, desc, unit: itemUnit(), qty: cur.qty });
+  $("#dlgItem").close();
+};
+
+/* ---------- Koszyk ---------- */
+function addToCart(it) {
+  const same = cart.find(c => c.name === it.name && c.desc === it.desc && c.unit === it.unit);
+  same ? same.qty += it.qty : cart.push(it);
+  save(); renderCart(); toast(`Dodano: ${it.name}`);
+}
+function totals() {
+  const sub = cart.reduce((s, c) => s + c.unit * c.qty, 0);
+  let disc = 0;
+  if (discount) disc = discount.typ === "proc" ? sub * discount.wartosc / 100 : Math.min(sub, discount.wartosc);
+  disc = Math.round(disc * 100) / 100;
+  const delivery = $("#mDel").checked && sub > 0
+    ? (CONFIG.dostawa.darmowaOd && sub - disc >= CONFIG.dostawa.darmowaOd ? 0 : CONFIG.dostawa.koszt) : 0;
+  return { sub, disc, delivery, total: Math.round((sub - disc + delivery) * 100) / 100 };
+}
+function renderCart() {
+  const n = cart.reduce((s, c) => s + c.qty, 0);
+  $("#cartCount").textContent = n;
+  $("#cartBody").innerHTML = cart.length ? cart.map((c, i) => `
+    <div class="line">
+      <span class="t">${esc(c.name)}</span><span class="lp">${zl(c.unit * c.qty)}</span>
+      ${c.desc ? `<span class="d">${esc(c.desc)}</span>` : ""}
+      <div class="qty"><button type="button" data-dec="${i}" aria-label="Mniej">−</button><span>${c.qty}</span><button type="button" data-inc="${i}" aria-label="Więcej">+</button></div>
+    </div>`).join("") : `<p class="empty">Koszyk jest pusty.<br>Wybierz rozmiar pizzy, żeby ją dodać.</p>`;
+  const t = totals();
+  $("#sSub").textContent = zl(t.sub);
+  $("#rowDisc").hidden = !t.disc; $("#sDisc").textContent = "−" + zl(t.disc);
+  $("#rowDel").hidden = !$("#mDel").checked || !t.sub; $("#sDel").textContent = t.delivery ? zl(t.delivery) : "gratis";
+  $("#sTot").textContent = zl(t.total);
+  $("#coTotal").textContent = "Razem: " + zl(t.total);
+  $("#checkoutBtn").disabled = !cart.length;
+}
+$("#cartBody").addEventListener("click", e => {
+  const d = e.target.closest("[data-dec]"), u = e.target.closest("[data-inc]");
+  if (d) { const i = +d.dataset.dec; if (--cart[i].qty <= 0) cart.splice(i, 1); }
+  else if (u) cart[+u.dataset.inc].qty++;
+  else return;
+  save(); renderCart();
+});
+$("#applyCode").onclick = () => {
+  const k = $("#code").value.trim().toUpperCase(), m = $("#codeMsg");
+  discount = CONFIG.kody[k] || null;
+  m.hidden = !k;
+  m.textContent = discount ? `Kod ${k} naliczony.` : `Kod „${k}” jest nieaktywny. Sprawdź pisownię.`;
+  renderCart();
+};
+
+const cartEl = $("#cart"), scrim = $("#scrim");
+const setCart = open => { cartEl.classList.toggle("open", open); scrim.hidden = !open || matchMedia("(min-width:980px)").matches; };
+$("#openCart").onclick = () => matchMedia("(min-width:980px)").matches ? cartEl.scrollIntoView({ behavior: "smooth" }) : setCart(true);
+$("#closeCart").onclick = scrim.onclick = () => setCart(false);
+
+/* ---------- Zamówienie ---------- */
+function fillWhen() {
+  const sel = $("#cWhen"), now = new Date(), opts = [];
+  if (isOpen(now)) opts.push(["asap", "Jak najszybciej"]);
+  const t = new Date(now); t.setMinutes(Math.ceil((t.getMinutes() + 45) / 15) * 15, 0, 0);
+  for (let i = 0; i < 48 && opts.length < 20; i++, t.setMinutes(t.getMinutes() + 15)) {
+    if (!isOpen(t)) continue;
+    const day = t.toDateString() === now.toDateString() ? "dziś" : "jutro";
+    opts.push([t.toISOString(), `${day} ${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`]);
+  }
+  sel.innerHTML = opts.map(o => `<option value="${o[0]}">${o[1]}</option>`).join("");
+}
+function syncMode() {
+  const del = $("#mDel").checked;
+  document.querySelectorAll(".addr").forEach(el => el.hidden = !del);
+  renderCart();
+}
+document.querySelectorAll('input[name=mode]').forEach(r => r.addEventListener("change", syncMode));
+
+$("#checkoutBtn").onclick = () => { setCart(false); fillWhen(); syncMode(); $("#coErr").hidden = true; $("#dlgCheckout").showModal(); };
+$("#coClose").onclick = () => $("#dlgCheckout").close();
+
+$("#coForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (sending) return;
+  const del = $("#mDel").checked, t = totals(), errs = [];
+  const phone = $("#cPhone").value.replace(/\D/g, "");
+  if (!$("#cName").value.trim()) errs.push("podaj imię");
+  if (phone.length < 9) errs.push("podaj 9-cyfrowy numer telefonu");
+  if (del && !$("#cStreet").value.trim()) errs.push("podaj ulicę i numer");
+  if (del && CONFIG.dostawa.minimum && t.sub - t.disc < CONFIG.dostawa.minimum) errs.push(`minimalna kwota dostawy to ${zl(CONFIG.dostawa.minimum)}`);
+  if (!$("#cRodo").checked) errs.push("zaakceptuj regulamin");
+  if (errs.length) { const er = $("#coErr"); er.textContent = "Uzupełnij: " + errs.join(", ") + "."; er.hidden = false; return; }
+
+  const order = {
+    nr: "CP-" + Date.now().toString().slice(-6),
+    data: new Date().toLocaleString("pl-PL"),
+    tryb: del ? "DOSTAWA" : "ODBIÓR OSOBISTY",
+    kiedy: $("#cWhen").selectedOptions[0]?.text || "",
+    klient: { imie: $("#cName").value.trim(), telefon: $("#cPhone").value.trim(),
+      adres: del ? [$("#cStreet").value, $("#cFlat").value, $("#cCity").value].map(s => s.trim()).filter(Boolean).join(", ") : "" },
+    platnosc: $("#cPay").value, uwagi: $("#cNote").value.trim(),
+    pozycje: cart.map(c => ({ ...c })), ...t,
+  };
+
+  if (!CONFIG.supabase.url || !CONFIG.supabase.anonKey) return showTicket(order);
+
+  const btn = e.submitter || document.querySelector("#coForm [type=submit]");
+  sending = true; btn.disabled = true; btn.textContent = "Wysyłam…";
+  try {
+    const nr = await sendToSupabase(order);
+    order.nr = nr;
+    showConfirmation(order);
+  } catch (err) {
+    if (err.userMessage) {
+      const er = $("#coErr"); er.textContent = err.userMessage; er.hidden = false;
+    } else {
+      // brak połączenia z bazą → zamówienie nie może przepaść, dajemy podsumowanie do SMS
+      showTicket(order, "Nie udało się połączyć z systemem zamówień. Wyślij zamówienie SMS-em albo zadzwoń.");
+    }
+  } finally {
+    sending = false; btn.disabled = false; btn.textContent = "Potwierdzam zamówienie";
+  }
+});
+
+let sending = false;
+
+async function sendToSupabase(o) {
+  const payload = {
+    tryb: o.tryb === "DOSTAWA" ? "dostawa" : "odbior",
+    kiedy: o.kiedy, imie: o.klient.imie, telefon: o.klient.telefon, adres: o.klient.adres,
+    platnosc: o.platnosc, uwagi: o.uwagi,
+    pozycje: o.pozycje.map(p => ({ name: p.name, desc: p.desc || "", unit: p.unit, qty: p.qty })),
+    produkty: o.sub, rabat: o.disc, dostawa: o.delivery, razem: o.total,
+    kod: discount ? $("#code").value.trim().toUpperCase() : "",
+  };
+  const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 12000);
+  let res;
+  try {
+    res = await fetch(CONFIG.supabase.url.replace(/\/$/, "") + "/rest/v1/rpc/zloz_zamowienie", {
+      method: "POST", signal: ctrl.signal,
+      headers: { "Content-Type": "application/json", apikey: CONFIG.supabase.anonKey, Authorization: "Bearer " + CONFIG.supabase.anonKey },
+      body: JSON.stringify({ p: payload }),
+    });
+  } finally { clearTimeout(to); }
+  const body = await res.json().catch(() => null);
+  if (!res.ok) {
+    const err = new Error("supabase " + res.status);
+    // błędy walidacji z funkcji SQL (raise exception) pokazujemy klientowi
+    if (res.status === 400 && body?.message) err.userMessage = body.message;
+    throw err;
+  }
+  return body;
+}
+
+function showConfirmation(o) {
+  $("#coBody").innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <p style="margin:0;font-family:var(--display);font-size:26px;color:var(--lime)">Przyjęte!</p>
+      <p style="margin:0">Numer zamówienia: <strong style="font-variant-numeric:tabular-nums">${esc(o.nr)}</strong></p>
+      <p style="margin:0">${o.tryb === "DOSTAWA" ? "Dostawa" : "Odbiór osobisty"} · ${esc(o.kiedy)} · razem <strong>${zl(o.total)}</strong></p>
+      <p class="note">Pytania o zamówienie: <span style="user-select:all;font-weight:700;color:var(--fg)">${CONFIG.restauracja.telefon}</span> — podaj numer ${esc(o.nr)}.</p>
+      <pre class="ticket">${esc(ticketText(o))}</pre>
+    </div>`;
+  document.querySelector("#coForm .m-f").innerHTML = `<button class="btn primary" type="button" id="newOrder">Nowe zamówienie</button>`;
+  $("#newOrder").onclick = () => { cart = []; discount = null; save(); location.reload(); };
+  cart = []; discount = null; save(); renderCart();
+}
+
+function ticketText(o) {
+  const L = [
+    `ZAMÓWIENIE ${o.nr} · ${o.data}`, CONFIG.restauracja.nazwa, "",
+    `${o.tryb} · ${o.kiedy}`,
+    `${o.klient.imie} · tel. ${o.klient.telefon}`,
+    o.klient.adres ? `Adres: ${o.klient.adres}` : "", "",
+    ...o.pozycje.map(p => `${p.qty}× ${p.name} — ${zl(p.unit * p.qty)}${p.desc ? "\n    " + p.desc : ""}`), "",
+    `Produkty: ${zl(o.sub)}`,
+    o.disc ? `Rabat: −${zl(o.disc)}` : "",
+    o.tryb === "DOSTAWA" ? `Dostawa: ${o.delivery ? zl(o.delivery) : "gratis"}` : "",
+    `RAZEM: ${zl(o.total)}`,
+    `Płatność: ${o.platnosc}`,
+    o.uwagi ? `Uwagi: ${o.uwagi}` : "",
+  ];
+  return L.filter((l, i) => l !== "" || (L[i - 1] !== "" && i > 0)).join("\n");
+}
+
+/* Tryb awaryjny / bez bazy: klient dostaje podsumowanie do wysłania SMS-em */
+function showTicket(o, msg) {
+  const txt = ticketText(o);
+  $("#coBody").innerHTML = `
+    <p style="margin:0;font-weight:600">${esc(msg || "Podsumowanie gotowe. Wyślij je SMS-em lub podyktuj przez telefon:")}</p>
+    <div class="phones"><span>${CONFIG.restauracja.telefon}</span></div>
+    <pre class="ticket" id="ticket">${esc(txt)}</pre>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" type="button" id="copyT">Kopiuj podsumowanie</button>
+      <a class="btn" href="sms:${CONFIG.restauracja.telefon.replace(/\s/g, "")}?body=${encodeURIComponent(txt)}" style="text-decoration:none">Otwórz SMS</a>
+    </div>
+    <p class="note">Jeśli przycisk SMS nic nie otworzy, skopiuj tekst i wyślij na numer powyżej.</p>`;
+  document.querySelector("#coForm .m-f").innerHTML = `<button class="btn primary" type="button" id="newOrder">Nowe zamówienie</button>`;
+  $("#copyT").onclick = async () => {
+    try { await navigator.clipboard.writeText(txt); toast("Skopiowano"); }
+    catch { const r = document.createRange(); r.selectNodeContents($("#ticket")); getSelection().removeAllRanges(); getSelection().addRange(r); toast("Zaznaczono — skopiuj Ctrl+C"); }
+  };
+  $("#newOrder").onclick = () => { cart = []; discount = null; save(); location.reload(); };
+}
+
+let tt;
+function toast(m) { const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(tt); tt = setTimeout(() => t.hidden = true, 1600); }
+
+renderStatus(); renderTabs(); renderMenu(); renderCart();
+setInterval(renderStatus, 60000);
+</script>
