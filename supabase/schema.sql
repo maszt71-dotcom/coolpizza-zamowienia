@@ -5,6 +5,9 @@
 -- Po nim uruchom seed.sql (menu, strefy, ustawienia) – tylko raz.
 -- =====================================================================
 
+-- Funkcja z prototypu v1 zwracała text – trzeba ją usunąć, bo v2 zwraca jsonb (zaraz jest tworzona na nowo).
+drop function if exists public.zloz_zamowienie(jsonb);
+
 -- Usunięcie prototypu v1 – TYLKO jeśli tabela ma starą budowę (kolumna jsonb "pozycje").
 -- Tabela v2 nie ma tej kolumny, więc ponowne uruchomienie skryptu nie kasuje zamówień.
 do $$ begin
